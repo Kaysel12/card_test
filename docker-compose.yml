@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  frontend:
+    container_name: cards-banking
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9280:9280"
+    environment:
+      - TZ=America/Santo_Domingo
+      - NEXTAUTH_SECRET=secret
+    restart: unless-stopped
