@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import { useState } from "react";
 import CreditCardPreview from "./CreditCardPreview";
 import CardForm from "./CardForm";
+import { CardMessagesPanel } from "./CardMessagesPanel";
 
 export default function DashboardPage() {
 	const [cardData, setCardData] = useState({
@@ -12,7 +13,7 @@ export default function DashboardPage() {
 	});
 
 	return (
-		<Box sx={{ p: 6 }}>
+		<Box sx={{ display: "flex", justifyContent: "space-around", p: 2 }}>
 			<Box
 				sx={{
 					display: "flex",
@@ -34,6 +35,18 @@ export default function DashboardPage() {
 					}
 				/>
 			</Box>
+
+			<Box 
+				sx={{
+					display: "flex",
+					flexDirection: "column",
+					justifyContent: "center",
+					alignItems: "center",
+				}}
+			>
+				<CardMessagesPanel />
+			</Box>
+
 		</Box>
 	);
 }

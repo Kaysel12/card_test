@@ -2,9 +2,10 @@
 import { InputField } from "@/shared/components/ui/InputField";
 import { Box, Button } from "@mui/material";
 import { useState } from "react";
-import { ICardsAdd } from "../interfaces/ICards";
 import { maskCardNumber, maskName } from "@/shared/utils/mask";
 import { isValidExpiry } from "@/shared/utils/validation";
+import { useCardServices } from "../hooks/useCardService";
+import { useAlert } from "@/shared/context/AlertProvider";
 
 interface Props {
 	onChange: (data: {
@@ -27,7 +28,23 @@ export default function CardForm({ onChange }: Readonly<Props>) {
         cardHolder: "",
         cvv: "",
     });
-    const [cards, setCards] = useState<ICardsAdd[]>([]);
+    const { createCard } = useCardServices();
+    const { showAlert } = useAlert();
+
+    const limpiarDatos = () => {
+        setFormData({
+            cardNumber: "",
+            cardHolder: "",
+            expiry: "",
+        });
+        setCvv("");
+        setErrors({
+            cardNumber: "",
+            expiry: "",
+            cardHolder: "",
+            cvv: "",
+        });
+    }
     
     const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const masked = maskCardNumber(e.target.value);
@@ -84,29 +101,45 @@ export default function CardForm({ onChange }: Readonly<Props>) {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
 
-        const invalid =
-            !formData.cardNumber ||
-            !formData.cardHolder ||
-            !formData.expiry ||
-            !cvv ||
-            Object.values(errors).some(x => x !== "");
+        const newErrors = {
+            cardNumber: "",
+            expiry: "",
+            cardHolder: "",
+            cvv: ""
+        };
 
-        if (invalid) {
-            alert("Formulario inválido");
-            return;
+        if (formData.cardNumber.replaceAll(/\s/g, "").length !== 16)
+            newErrors.cardNumber = "Debe contener 16 dígitos";
+
+        if (!isValidExpiry(formData.expiry))
+            newErrors.expiry = "Fecha inválida";
+
+        if (!formData.cardHolder)
+            newErrors.cardHolder = "Campo requerido";
+
+        if (cvv.length !== 3)
+            newErrors.cvv = "CVV inválido";
+
+        setErrors(newErrors);
+
+        const hasErrors = Object.values(newErrors).some(e => e !== "");
+        if (hasErrors) return;
+
+        try {
+            await createCard({
+                cardNumber: formData.cardNumber,
+                cardHolderName: formData.cardHolder,
+                expiryDate: formData.expiry,
+                cvv
+            });
+            limpiarDatos();
+            showAlert("Tarjeta agregada correctamente", "success");
+        } catch {
+            console.log("Error al crear la tarjeta");
         }
 
-        setCards(prev => [
-            ...prev,
-            {
-            cardNumber: formData.cardNumber,
-            cardHolderName: formData.cardHolder,
-            expiryDate: formData.expiry,
-            cvv
-            }
-        ]);
     };
 
 
@@ -168,7 +201,7 @@ export default function CardForm({ onChange }: Readonly<Props>) {
 				<Button variant="contained" onClick={handleSubmit}>
                     Agregar Tarjeta
                 </Button>
-				<Button variant="outlined">Cancelar</Button>
+				<Button variant="outlined" onClick={limpiarDatos}>Cancelar</Button>
 			</Box>
 		</Box>
 	);

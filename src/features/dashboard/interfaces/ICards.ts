@@ -17,3 +17,12 @@ export interface ICardsAdd{
 	expiryDate: string;
 	cvv: string;
 }
+
+export interface ICardsResponse{
+	id?: string;
+	cardNumber?: string;
+	cardNumberMasked?: string;
+	cardHolderName?: string;
+	expiryDate?: string;
+	cvv?: string;
+}
